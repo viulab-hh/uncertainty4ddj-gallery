@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Uncertainty Visualizations — Explorer (Stabile Version)</title>
+  <meta name="description" content="Sammlung journalistischer Unsicherheits-Visualisierungen — Explorer-Prototyp." />
+  <style>
+    :root{
+      --bg:#ffffff; --muted:#6b7280; --accent:#0ea5a3; --card:#f8fafc; 
+      --radius:12px; --maxw:1200px; --gap:18px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: #0f172a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);line-height:1.45}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #eef2f7;background:#fff;}
+    .logo{font-weight:600}
+    .container{max-width:var(--maxw);margin:0 auto;padding:var(--gap);display:flex;flex-direction:column;gap:var(--gap)}
+    
+    /* 1. ROBUSTES GALLERY GRID */
+    .gallery{
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+        gap:var(--gap);
+        list-style:none;
+        padding:0;
+        margin:0
+    }
+    
+    /* 2. ROBUSTE CARD STRUKTUR */
+    .card{
+        background:var(--card);
+        border-radius:var(--radius);
+        overflow:hidden;
+        box-shadow:0 1px 3px rgba(0,0,0,.08);
+        transition:all .2s ease;
+        cursor:pointer;
+        display: flex; /* WICHTIG: Flexbox für innere Elemente */
+        flex-direction: column;
+        height: 100%; /* Stellt sicher, dass alle Karten die gleiche Höhe haben */
+    }
+    .card:hover{box-shadow:0 6px 15px rgba(0,0,0,.1);transform:translateY(-2px)}
+    
+    .card img{
+        width:100%;
+        height:180px; /* Feste Höhe für die Vorschaubilder */
+        object-fit:cover;
+        display:block;
+        flex-shrink: 0; /* Verhindert das Schrumpfen des Bildes */
+    }
+    .card-content{
+        padding:12px 16px;
+        flex-grow: 1; /* Füllt den verbleibenden Platz aus */
+        display: flex;
+        flex-direction: column;
+    }
+    .card-content h3{margin-top:0;font-size:1.1rem;margin-bottom:4px}
+    .card-content p{color:var(--muted);font-size:.9rem;margin:0; flex-grow: 1;} /* Beschreibung füllt Platz */
+    .card-meta{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--muted);margin-top:8px}
+
+    /* Filters/Controls */
+    .controls{display:flex;flex-wrap:wrap;gap:10px;padding:10px 0;}
+    .filter-group{display:flex;flex-direction:column;gap:5px;padding:0 10px}
+    .filter-group label{font-weight:500;font-size:.9rem}
+    .filter-group select{padding:6px 10px;border-radius:6px;border:1px solid #ddd;min-width:150px}
+    .filter-group button{background-color:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background-color .2s}
+    .filter-group button:hover{background-color:#077774}
+
+    @media (max-width: 768px){
+      .gallery{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+      .controls{flex-direction:column}
+      .filter-group{padding:0 15px}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Visualisierungs-Explorer (Uncertainty Lab)</div>
+  </header>
+
+  <div class="container">
+    <h2>Gefundene Visualisierungen (<span id="count">0</span>)</h2>
+    
+    <div class="controls">
+      <div class="filter-group">
+        <label for="filter-cluster">Cluster / Typ:</label>
+        <select id="filter-cluster">
+          <option value="">Alle Cluster</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-source">Quelle:</label>
+        <select id="filter-source">
+          <option value="">Alle Quellen</option>
+        </select>
+      </div>
+      <div class="filter-group" style="align-self: flex-end;">
+        <button onclick="resetFilters()">Filter zurücksetzen</button>
+      </div>
+    </div>
+    
+    <div class="gallery" id="gallery-container">
+    </div>
+  </div>
+
+  <script>
+    // CSV-Daten (Mappe1.csv) direkt in den Code integriert
+    const CSV_DATA = `Title;Visualisierungstitel (falls nicht identisch);Quelle - Tags;Datum;Beschreibung;Art der Visualisierung - Tags;Visualisierung der Unsicherheit;Link;Bild;Cluster;coincident / adjacent;implicit / explicit;intrinsic / extrinsic ;static / dynamic;type of uncertainty
+Klimaschutz und Russland: Wo stehen Sie?;;Zeit;03.06.2024;Selbstpositionierung der EU-Kandidat*innen der Parteien anhand der Dimensionen Russland und Klimaschutz;Contour Map, Correlation, Scatter Plot, Spatial;Parteiengebiete durch Farben abgestuft und verteilt, jedoch keinerlei Erklärung dafür;https://www.zeit.de/politik/deutschland/2024-06/europawahl-2024-kandidaten-einstellungen-russland-klimawandel;ZEIT10.jpeg;7: Classification;coincident;explicit;intrinsic;dynamic;positional / geometric
+Was für die Bundeswehr bestellt wurde – und was ihr noch fehlt;Milliarden für neues Material;Zeit;04.06.2024;"Von der Bestellung bis zur Lieferung: die wichtigsten Investitionen aus dem
+Sondervermögen in die Bereiche Digitalisierung, Heer, Luftwaffe, Marine,
+Ausrüstung";Change over Time, Priestley Timeline;Zeiträume in der Zukunft werden durch offene Balken dargestellt;https://www.zeit.de/politik/deutschland/2024-05/bundeswehr-sondervermoegen-militaer-investitionen;ZEIT9.png;1: Forecast;coincident;explicit;intrinsic;static;temporal
+Werden Sachsen und Thüringen unregierbar?;Simulierte mögliche Mehrheiten für Landtagswahlen in Sachsen und Thüringen;Zeit;10.06.2024;Simulierte mögliche Mehrheiten für Landtagswahlen in Sachsen und Thüringen;Stacked Bar Chart, Area Chart;Farblich abgestufte Bandbreite der möglichen Koalitionen;https://www.zeit.de/politik/deutschland/2024-06/landtagswahlen-sachsen-thueringen-umfragen-koalitionen;ZEIT8.jpeg;2: Definite Ranges;coincident;explicit;intrinsic;static;positional / geometric
+Toleranz für Schneetage: Wie viel Schnee braucht es in den USA?;Tolerance for snow days varies widely across the US;CNN;12.02.2024;durchschnittlicher starker Schneefall in verschiedenen Städten;Distribution, Dot Plot;Minimale und maximale Spannbreite des Schneefalls zur Verdeutlichung der möglichen Range;https://edition.cnn.com/2024/02/12/us/how-much-snow-kids-school-snow-day-across-us-dg/index.html;CNN2.png;2: Definite Ranges;coincident;explicit;extrinsic;static;attribute / thematic
+These cities will be too hot for the Olympics by 2050;At least half the cities bidding for the 2036 Summer Olympics could experience unsafe temperatures;CNN;12.08.2024;prognostizierte Durchschnittstemperaturen für mögliche Olympiastädte und deren Hitzeschwellen in 2040-2059;Change over Time, Line Chart;die Range der möglichen Temperaturen wird zur Einschätzung der Hitzeschwelle angegeben;https://edition.cnn.com/2024/08/11/climate/olympics-cities-extreme-heat/index.html;CNN3.png;1: Forecast;coincident;explicit;extrinsic;static;temporal
+US heat risk forecast: See where Americans are at the most risk for extreme heat this year;Two-week outlook: Chance that temperatures will be above, below or near normal;CNN;25.03.2025;Wahrscheinlichkeiten für erhöhte oder erniedrigte Temperaturen;Contour Map, Spatial;Prozentuale Sicherheit der zu erwartenden Temperaturen farblich abgestuft;https://edition.cnn.com/2025/03/25/weather/extreme-heat-us-forecast-risk/index.html;CNN1.png;1: Forecast, 3: Spatial;coincident;explicit;extrinsic;static;attribute / thematic
+`; 
+    
+    const COLUMN_MAPPING = [
+        "title", 
+        "subtitle", 
+        "source", 
+        "date", 
+        "description", 
+        "visType", 
+        "uncertaintyVis", 
+        "link", 
+        "image", 
+        "cluster", 
+        "coincident", 
+        "implicit", 
+        "intrinsic", 
+        "static", 
+        "uncertaintyType" 
+    ];
+
+    /**
+     * Parst den CSV-String in ein Array von Objekten.
+     */
+    function parseCSV(csvString) {
+      const lines = csvString.trim().split('\n');
+      const data = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(';'); 
+        
+        if (values.length < COLUMN_MAPPING.length) continue;
+        
+        const item = {};
+        COLUMN_MAPPING.forEach((key, index) => {
+            // Trimmen und Anführungszeichen entfernen (für Beschreibungsfelder)
+            item[key] = values[index].trim().replace(/^"|"$/g, ''); 
+        });
+
+        item.id = i;
+        // Extrahieren der Cluster-Nummer (z.B. '7' aus '7: Classification')
+        const clusterParts = item.cluster.split(':');
+        item.clusterKey = clusterParts[0].trim(); 
+        item.clusterText = clusterParts[1] ? clusterParts[1].trim() : item.cluster.trim();
+
+        data.push(item);
+      }
+      return data;
+    }
+
+    const DATA = parseCSV(CSV_DATA);
+
+    /* STATE & DOM ELEMENTS */
+    let currentFilters = { cluster: '', source: '' };
+    const galleryContainer = document.getElementById('gallery-container');
+    const countElement = document.getElementById('count');
+    const filterCluster = document.getElementById('filter-cluster');
+    const filterSource = document.getElementById('filter-source');
+
+    /* HELPER FUNKTIONEN */
+    function el(tag, attributes = {}, ...children) {
+      const element = document.createElement(tag);
+      for (const key in attributes) {
+        if (key.startsWith('on') && typeof attributes[key] === 'function') {
+          element.addEventListener(key.substring(2).toLowerCase(), attributes[key]);
+        } else {
+          element.setAttribute(key, attributes[key]);
+        }
+      }
+      children.forEach(child => {
+        if (typeof child === 'string') {
+          element.appendChild(document.createTextNode(child));
+        } else if (child) {
+          element.appendChild(child);
+        }
+      });
+      return element;
+    }
+
+    /* RENDERING FUNKTIONEN */
+
+    function renderGallery() {
+      galleryContainer.innerHTML = '';
+      const filteredData = DATA.filter(item => {
+        const clusterMatch = !currentFilters.cluster || item.clusterKey === currentFilters.cluster;
+        const sourceMatch = !currentFilters.source || item.source.toLowerCase().includes(currentFilters.source.toLowerCase());
+        return clusterMatch && sourceMatch;
+      });
+
+      countElement.textContent = filteredData.length;
+
+      if (filteredData.length === 0) {
+        galleryContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px;">Keine Visualisierungen gefunden, die den Filtern entsprechen.</p>';
+        return;
+      }
+
+      filteredData.forEach(item => {
+        const titleText = item.subtitle || item.title;
+        
+        const card = el('div', { class: 'card' },
+          el('img', { 
+            // **********************************************
+            // WICHTIGE ÄNDERUNG: PFAD-PRÄFIX "Bilder/" HINZUGEFÜGT
+            // **********************************************
+            src: 'Bilder/' + item.image, 
+            alt: titleText,
+            onerror: (e) => { 
+              // Fallback-Bild bei Fehler, zeigt den Pfad für Debugging
+              e.target.src = 'https://via.placeholder.com/400x180.png?text=Bild+Nicht+Gefunden+unter+Bilder/' + item.image;
+            }
+          }),
+          el('div', { class: 'card-content' },
+            el('h3', {}, titleText),
+            el('p', {}, item.uncertaintyVis), // Kurz-Analyse als Beschreibung
+            el('div', { class: 'card-meta' },
+              el('span', {}, item.source),
+              el('span', {}, item.clusterText)
+            )
+          )
+        );
+        galleryContainer.appendChild(card);
+      });
+    }
+    
+    function populateFilters() {
+      // Cluster-Filter
+      const clusters = [...new Set(DATA.map(item => ({ key: item.clusterKey, text: item.clusterText, full: item.cluster })).filter(x => x.key))];
+      clusters.sort((a, b) => parseInt(a.key) - parseInt(b.key));
+      clusters.forEach(c => {
+        filterCluster.appendChild(el('option', { value: c.key }, c.full));
+      });
+      
+      // Quellen-Filter
+      const sources = [...new Set(DATA.map(item => item.source).filter(s => s))].sort();
+      sources.forEach(s => {
+        filterSource.appendChild(el('option', { value: s }, s));
+      });
+      
+      filterCluster.addEventListener('change', (e) => {
+        currentFilters.cluster = e.target.value;
+        renderGallery();
+      });
+
+      filterSource.addEventListener('change', (e) => {
+        currentFilters.source = e.target.value;
+        renderGallery();
+      });
+    }
+    
+    function resetFilters() {
+      currentFilters = { cluster: '', source: '' };
+      filterCluster.value = '';
+      filterSource.value = '';
+      renderGallery();
+    }
+
+
+    /* INITIALISIERUNG */
+    window.onload = function() {
+      populateFilters();
+      renderGallery();
+    };
+
+  </script>
+</body>
+</html>

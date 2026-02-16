@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Uncertainty Visualizations – Gallery</title>
+
+<style>
+:root{
+  --bg:#071826;
+  --card:#0b2630;
+  --muted:#9fb3bf;
+  --accent:#06b6d4;
+  --accent2:#60a5fa;
+  --radius:12px;
+  --maxw:1200px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background:linear-gradient(180deg,var(--bg),#04121a);
+  color:#e6f2f5;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 28px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:700;
+  color:white;
+}
+
+.logo .mark{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#012;
+  font-weight:800;
+}
+
+main{
+  max-width:var(--maxw);
+  margin:20px auto;
+  padding:0 18px;
+}
+
+.hero{
+  background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent);
+  padding:22px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.04);
+}
+
+.hero h1{
+  margin:0;
+  font-size:28px;
+  color:white;
+}
+
+.hero p{
+  margin-top:8px;
+  color:var(--muted);
+  max-width:720px;
+}
+
+.filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:20px 0;
+}
+
+.filters select, .filters input{
+  padding:6px 10px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:#0b2630;
+  color:white;
+}
+
+.layout{
+  margin-top:24px;
+}
+
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:14px;
+}
+
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+  border-radius:10px;
+  padding:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;
+  transition:transform .15s ease;
+}
+
+.card:hover{
+  transform:translateY(-6px);
+}
+
+.thumb{
+  height:150px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.meta{
+  padding-top:10px;
+}
+
+.title{
+  font-weight:700;
+  color:white;
+}
+
+.sub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.steckbrief{
+  margin-top:8px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.steckbrief p{
+  margin:4px 0;
+}
+
+.steckbrief a{
+  display:inline-block;
+  margin-top:6px;
+  padding:6px 10px;
+  border-radius:6px;
+  background:var(--accent);
+  color:#012;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.steckbrief a:hover{
+  background:var(--accent2);
+}
+
+/* MODAL */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,0.95);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:50;
+}
+
+.modal{
+  background:linear-gradient(180deg,#082231,#06121a);
+  border-radius:14px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+  padding:20px;
+  position:relative;
+}
+
+.modal-thumb{
+  max-height:70vh;
+  display:flex;
+  justify-content:center;
+  margin-bottom:10px;
+}
+
+.modal-thumb img{
+  max-width:100%;
+  max-height:70vh;
+  object-fit:contain;
+  cursor:zoom-in;
+  transition: transform .3s ease;
+}
+
+.modal-thumb img.zoomed{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(1);
+  width:auto;
+  height:auto;
+  max-width:none;
+  max-height:none;
+  cursor:zoom-out;
+  z-index:100;
+  box-shadow:0 0 30px rgba(0,0,0,0.7);
+}
+
+.modal-meta{
+  margin-top:10px;
+  color:#ccc;
+  font-size:14px;
+}
+
+.close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:none;
+  border:0;
+  color:white;
+  font-size:28px;
+  cursor:pointer;
+}
+
+footer{
+  text-align:center;
+  color:var(--muted);
+  margin:40px 0 80px;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="mark">U</div>
+    Uncertainty Lab
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Uncertainty Visualizations — Gallery</h1>
+    <p>Kuratierte Sammlung journalistischer Unsicherheitsvisualisierungen.</p>
+  </section>
+
+  <section class="filters">
+    <input type="text" id="search" placeholder="Suche..." />
+    <select id="filter-cluster"><option value="">Alle Cluster</option></select>
+    <select id="filter-medium"><option value="">Alle Medien</option></select>
+    <select id="filter-chart"><option value="">Alle Chart Types</option></select>
+    <select id="filter-date"><option value="">Alle Daten</option></select>
+  </section>
+
+  <section class="layout">
+    <div id="gallery" class="gallery"></div>
+  </section>
+</main>
+
+<div id="modal" class="modal-backdrop">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div class="modal-thumb"><img id="modal-img" src="" alt=""></div>
+    <div class="modal-meta" id="modal-meta"></div>
+  </div>
+</div>
+
+<footer>
+  © Uncertainty Lab — Gallery auf Basis einer JSON-Datenbank
+</footer>
+
+<script>
+let DATA = [];
+
+// =====================
+// JSON LADEN
+// =====================
+async function loadJSON() {
+  try {
+    const res = await fetch("data.json");
+    if(!res.ok) throw new Error("JSON-Datei nicht gefunden");
+    return await res.json();
+  } catch(e) {
+    console.error(e);
+    return [];
+  }
+}
+
+// =====================
+// GALLERY RENDER
+// =====================
+function renderGallery(list = DATA){
+  const g = document.getElementById("gallery");
+  g.innerHTML = "";
+  list.forEach((d,i)=>{
+    const imageName = d.Bild || "placeholder.png";
+    const title = d.Titel || "Untitled";
+    const sub = (d["Quelle - Tags"]||"") + (d.Datum ? " • " + d.Datum : "");
+
+    const description = d.Beschreibung || "";
+    const uncertainty = d["Visualisierung der Unsicherheit"] || "";
+    const typeUnc = d["type of uncertainty"] || "";
+    const link = d.Link || "#";
+
+    const card = document.createElement("div");
+    card.className="card";
+    card.onclick = ()=>openModal(i);
+
+    card.innerHTML = `
+      <div class="thumb">
+        <img src="images/${imageName}" alt="${title}">
+      </div>
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub">${sub}</div>
+      </div>
+      <div class="steckbrief">
+        <p><strong>Beschreibung:</strong> ${description}</p>
+        <p><strong>Visualisierung der Unsicherheit:</strong> ${uncertainty}</p>
+        <p><strong>Type of Uncertainty:</strong> ${typeUnc}</p>
+        <a href="${link}" target="_blank">Original ansehen</a>
+      </div>
+    `;
+    g.appendChild(card);
+  });
+}
+
+// =====================
+// FILTER & SUCHE
+// =====================
+function filterAndRenderGallery(){
+  const searchValue = document.getElementById("search").value.toLowerCase();
+  const clusterFilter = document.getElementById("filter-cluster").value;
+  const mediumFilter = document.getElementById("filter-medium").value;
+  const chartFilter = document.getElementById("filter-chart").value;
+  const dateFilter = document.getElementById("filter-date").value;
+
+  const filtered = DATA.filter(d => {
+    const clusters = d.Cluster ? d.Cluster.split(",").map(t=>t.trim()) : [];
+    const charts = d["Art der Visualisierung - Tags"] ? d["Art der Visualisierung - Tags"].split(",").map(t=>t.trim()) : [];
+    const entryDate = d.Datum ? (()=>{const p=d.Datum.split("."); return p.length===3?p[1]+"."+p[2]:"";})() : "";
+
+    const matchesSearch =
+      (d.Titel?.toLowerCase().includes(searchValue)) ||
+      (d.Beschreibung?.toLowerCase().includes(searchValue)) ||
+      (d["Visualisierung der Unsicherheit"]?.toLowerCase().includes(searchValue)) ||
+      (d["Quelle - Tags"]?.toLowerCase().includes(searchValue));
+
+    const matchesCluster = !clusterFilter || clusters.includes(clusterFilter);
+    const matchesMedium = !mediumFilter || d["Quelle - Tags"] === mediumFilter;
+    const matchesChart = !chartFilter || charts.includes(chartFilter);
+    const matchesDate = !dateFilter || entryDate === dateFilter;
+
+    return matchesSearch && matchesCluster && matchesMedium && matchesChart && matchesDate;
+  });
+
+  renderGallery(filtered);
+}
+
+// =====================
+// FILTER DROPDOWNS
+// =====================
+function populateFilters(){
+  const clusterSet = new Set();
+  const mediumSet = new Set();
+  const chartSet = new Set();
+  const dateSet = new Set();
+
+  DATA.forEach(d=>{
+    if(d.Cluster) d.Cluster.split(",").map(t=>t.trim()).forEach(tag=>clusterSet.add(tag));
+    if(d["Art der Visualisierung - Tags"]) d["Art der Visualisierung - Tags"].split(",").map(t=>t.trim()).forEach(tag=>chartSet.add(tag));
+    if(d["Quelle - Tags"]) mediumSet.add(d["Quelle - Tags"]);
+    if(d.Datum){
+      const parts=d.Datum.split(".");
+      if(parts.length===3) dateSet.add(parts[1]+"."+parts[2]);
+    }
+  });
+
+  const addOptions = (selId, items)=>{
+    const sel = document.getElementById(selId);
+    items.forEach(i=>{
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      sel.appendChild(opt);
+    });
+  };
+
+  addOptions("filter-cluster", clusterSet);
+  addOptions("filter-medium", mediumSet);
+  addOptions("filter-chart", chartSet);
+  addOptions("filter-date", dateSet);
+}
+
+// =====================
+// MODAL & ZOOM
+// =====================
+function openModal(i){
+  const d = DATA[i];
+  const imageName = d.Bild || "placeholder.png";
+  const title = d.Titel || "Untitled";
+  const sub = (d["Quelle - Tags"]||"") + (d.Datum ? " • " + d.Datum : "");
+
+  const modalImg = document.getElementById("modal-img");
+  modalImg.src = `images/${imageName}`;
+  modalImg.alt = title;
+  document.getElementById("modal-meta").textContent = title + " — " + sub;
+  document.getElementById("modal").style.display = "flex";
+
+  // Zoom per Klick
+  modalImg.classList.remove("zoomed");
+  modalImg.onclick = ()=>{
+    modalImg.classList.toggle("zoomed");
+  };
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modal-img").classList.remove("zoomed");
+}
+
+// =====================
+// INIT
+// =====================
+loadJSON().then(data=>{
+  DATA = data;
+  populateFilters();
+  filterAndRenderGallery();
+});
+
+document.getElementById("search").addEventListener("input", filterAndRenderGallery);
+document.getElementById("filter-cluster").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-medium").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-chart").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-date").addEventListener("change", filterAndRenderGallery);
+document.addEventListener("keydown",e=>{if(e.key==="Escape") closeModal();});
+</script>
+</body>
+</html>

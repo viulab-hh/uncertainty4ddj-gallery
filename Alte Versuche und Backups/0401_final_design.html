@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Uncertainty Visualizations – Gallery</title>
+
+<style>
+:root{
+  --bg:#001a40;             /* dunkles Blau als Hintergrund */
+  --card:#002a70;           /* dunkleres Blau für Karten */
+  --muted:#ccefff;          /* helles Türkis für Text */
+  --accent:#00ffc4;         /* Hauptakzentfarbe Türkis */
+  --accent2:#003ca0;        /* Sekundärakzent dunkelblau */
+  --radius:12px;
+  --maxw:1200px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background:linear-gradient(180deg,var(--bg),#000f2a);
+  color:white;
+}
+
+header{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px 28px;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));
+}
+
+header img{
+  max-height:60px;
+}
+
+main{
+  max-width:var(--maxw);
+  margin:20px auto;
+  padding:0 18px;
+}
+
+.hero{
+  background:linear-gradient(180deg,rgba(0,255,196,0.05),transparent);
+  padding:22px;
+  border-radius:14px;
+  border:1px solid rgba(0,255,196,0.2);
+}
+
+.hero h1{
+  margin:0;
+  font-size:28px;
+  color:white;
+}
+
+.hero p{
+  margin-top:8px;
+  color:var(--muted);
+  max-width:720px;
+}
+
+.filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:20px 0;
+  align-items:center;
+}
+
+.filters select, .filters input, .filters button{
+  padding:6px 10px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:#002a70;
+  color:white;
+  cursor:pointer;
+}
+
+.filters button{
+  background:var(--accent);
+  color:#003ca0;
+  font-weight:700;
+}
+
+.filters button:hover{
+  background:var(--accent2);
+}
+
+.layout{
+  margin-top:24px;
+}
+
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:14px;
+}
+
+.card{
+  background:linear-gradient(180deg,rgba(0,255,196,0.05),rgba(0,60,160,0.05));
+  border-radius:10px;
+  padding:10px;
+  border:1px solid rgba(0,255,196,0.2);
+  cursor:pointer;
+  transition:transform .15s ease;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+}
+
+.thumb{
+  height:150px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.meta{
+  padding-top:10px;
+}
+
+.title{
+  font-weight:700;
+  color:white;
+}
+
+.sub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* MODAL DETAIL */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,20,0.95);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:50;
+}
+
+.modal{
+  background:linear-gradient(180deg,#002a70,#001a40);
+  border-radius:14px;
+  max-width:900px;
+  width:100%;
+  max-height:90vh;
+  overflow:auto;
+  padding:30px;
+  position:relative;
+}
+
+.modal-thumb{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.modal-thumb img{
+  max-width:60%;
+  height:auto;
+  object-fit:contain;
+  cursor:pointer;
+  transition:transform .3s ease;
+}
+
+.detail-meta p{
+  margin:10px 0;
+  font-size:16px;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+.detail-meta a{
+  display:inline-block;
+  margin-top:12px;
+  padding:8px 14px;
+  font-size:15px;
+  border-radius:6px;
+  background:var(--accent);
+  color:#003ca0;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.detail-meta a:hover{
+  background:var(--accent2);
+}
+
+.close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:none;
+  border:0;
+  color:white;
+  font-size:28px;
+  cursor:pointer;
+}
+
+footer{
+  text-align:center;
+  color:var(--muted);
+  margin:40px 0 80px;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="images/viulab-logo.svg" alt="ViuLab Logo">
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Uncertainty Visualizations — Gallery</h1>
+    <p>Sammlung journalistischer Unsicherheitsvisualisierungen.</p>
+  </section>
+
+  <section class="filters">
+    <input type="text" id="search" placeholder="Suche..." />
+    <select id="filter-cluster"><option value="">Alle Cluster</option></select>
+    <select id="filter-medium"><option value="">Alle Medien</option></select>
+    <select id="filter-chart"><option value="">Alle Chart Types</option></select>
+    <select id="filter-date"><option value="">Alle Daten</option></select>
+    <button id="reset-filters">Filter zurücksetzen</button>
+  </section>
+
+  <section class="layout">
+    <div id="gallery" class="gallery"></div>
+  </section>
+</main>
+
+<!-- MODAL DETAIL -->
+<div id="modal" class="modal-backdrop">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">✕</button>
+    <div class="modal-thumb">
+      <img id="modal-img" src="" alt="">
+    </div>
+    <div class="detail-meta" id="modal-meta"></div>
+  </div>
+</div>
+
+<script>
+let DATA = [];
+
+const MONATSNAMEN = {
+  "01":"Januar","02":"Februar","03":"März","04":"April",
+  "05":"Mai","06":"Juni","07":"Juli","08":"August",
+  "09":"September","10":"Oktober","11":"November","12":"Dezember"
+};
+
+// JSON laden
+async function loadJSON() {
+  try {
+    const res = await fetch("data.json");
+    if(!res.ok) throw new Error("JSON-Datei nicht gefunden");
+    return await res.json();
+  } catch(e) {
+    console.error(e);
+    return [];
+  }
+}
+
+// Galerie rendern
+function renderGallery(list = DATA){
+  const g = document.getElementById("gallery");
+  g.innerHTML = "";
+  list.forEach((d,i)=>{
+    const imageName = d.Bild || "placeholder.png";
+    const title = d.Titel || "Untitled";
+    const sub = (d["Quelle - Tags"]||"") + (d.Datum ? " • " + d.Datum : "");
+
+    const card = document.createElement("div");
+    card.className="card";
+    card.innerHTML = `
+      <div class="thumb">
+        <img src="images/${imageName}" alt="${title}">
+      </div>
+      <div class="meta">
+        <div class="title">${title}</div>
+        <div class="sub">${sub}</div>
+      </div>
+    `;
+
+    card.addEventListener("click",()=>openModal(i));
+    g.appendChild(card);
+  });
+}
+
+// Filter + Suche anwenden
+function filterAndRenderGallery(){
+  const searchValue = document.getElementById("search").value.toLowerCase();
+  const clusterFilter = document.getElementById("filter-cluster").value;
+  const mediumFilter = document.getElementById("filter-medium").value;
+  const chartFilter = document.getElementById("filter-chart").value;
+  const dateFilter = document.getElementById("filter-date").value;
+
+  const filtered = DATA.filter(d => {
+    const clusters = d.Cluster ? d.Cluster.split(",").map(t=>t.trim()) : [];
+    const charts = d["Art der Visualisierung - Tags"] ? d["Art der Visualisierung - Tags"].split(",").map(t=>t.trim()) : [];
+    let entryDate = "";
+    if(d.Datum){
+      const parts=d.Datum.split(".");
+      if(parts.length===3){
+        entryDate = parts[2]+" – "+MONATSNAMEN[parts[1]]; // YYYY – Monat
+      }
+    }
+
+    const matchesSearch =
+      (d.Titel?.toLowerCase().includes(searchValue)) ||
+      (d.Beschreibung?.toLowerCase().includes(searchValue)) ||
+      (d["Visualisierung der Unsicherheit"]?.toLowerCase().includes(searchValue)) ||
+      (d["Quelle - Tags"]?.toLowerCase().includes(searchValue));
+
+    const matchesCluster = !clusterFilter || clusters.includes(clusterFilter);
+    const matchesMedium = !mediumFilter || d["Quelle - Tags"] === mediumFilter;
+    const matchesChart = !chartFilter || charts.includes(chartFilter);
+    const matchesDate = !dateFilter || entryDate === dateFilter;
+
+    return matchesSearch && matchesCluster && matchesMedium && matchesChart && matchesDate;
+  });
+
+  renderGallery(filtered);
+}
+
+// Filteroptionen füllen
+function populateFilters(){
+  const clusterSet = new Set();
+  const mediumSet = new Set();
+  const chartSet = new Set();
+  const dateSet = new Set();
+
+  DATA.forEach(d=>{
+    if(d.Cluster) d.Cluster.split(",").map(t=>t.trim()).forEach(tag=>clusterSet.add(tag));
+    if(d["Art der Visualisierung - Tags"]) d["Art der Visualisierung - Tags"].split(",").map(t=>t.trim()).forEach(tag=>chartSet.add(tag));
+    if(d["Quelle - Tags"]) mediumSet.add(d["Quelle - Tags"]);
+    if(d.Datum){
+      const parts=d.Datum.split(".");
+      if(parts.length===3){
+        const readable = parts[2]+" – "+MONATSNAMEN[parts[1]];
+        dateSet.add(readable);
+      }
+    }
+  });
+
+  const addOptions = (selId, items)=>{
+    const sel = document.getElementById(selId);
+    Array.from(items).sort().forEach(i=>{
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      sel.appendChild(opt);
+    });
+  };
+
+  addOptions("filter-cluster", clusterSet);
+  addOptions("filter-medium", mediumSet);
+  addOptions("filter-chart", chartSet);
+  addOptions("filter-date", dateSet);
+}
+
+// Modal öffnen
+function openModal(i){
+  const d = DATA[i];
+  const imageName = d.Bild || "placeholder.png";
+  const title = d.Titel || "Untitled";
+  const sub = (d["Quelle - Tags"]||"") + (d.Datum ? " • " + d.Datum : "");
+  const description = d.Beschreibung || "";
+  const uncertainty = d["Visualisierung der Unsicherheit"] || "";
+  const typeUnc = d["type of uncertainty"] || "";
+  const link = d.Link || "#";
+
+  const modal = document.getElementById("modal");
+  const modalImg = document.getElementById("modal-img");
+  const modalMeta = document.getElementById("modal-meta");
+
+  modalImg.src = `images/${imageName}`;
+  modalImg.alt = title;
+
+  modalMeta.innerHTML = `
+    <p><strong>${title}</strong> • ${sub}</p>
+    <p><strong>Beschreibung:</strong> ${description}</p>
+    <p><strong>Visualisierung der Unsicherheit:</strong> ${uncertainty}</p>
+    <p><strong>Type of Uncertainty:</strong> ${typeUnc}</p>
+    <a href="${link}" target="_blank">Original ansehen</a>
+  `;
+
+  modal.style.display="flex";
+  modalImg.onclick = ()=>window.open(`images/${imageName}`,"_blank");
+}
+
+// Modal schließen
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+// Filter zurücksetzen
+function resetFilters(){
+  document.getElementById("search").value="";
+  document.getElementById("filter-cluster").value="";
+  document.getElementById("filter-medium").value="";
+  document.getElementById("filter-chart").value="";
+  document.getElementById("filter-date").value="";
+  filterAndRenderGallery();
+}
+
+// INIT
+loadJSON().then(data=>{
+  DATA = data;
+  populateFilters();
+  filterAndRenderGallery();
+});
+
+document.getElementById("search").addEventListener("input", filterAndRenderGallery);
+document.getElementById("filter-cluster").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-medium").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-chart").addEventListener("change", filterAndRenderGallery);
+document.getElementById("filter-date").addEventListener("change", filterAndRenderGallery);
+document.getElementById("reset-filters").addEventListener("click", resetFilters);
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape") closeModal();
+});
+</script>
+
+<footer>
+  Uncertainty4ddj ist ein Forschungsprojekt an der HAW Hamburg, gefördert vom Bundesministerium für Forschung, Technologie und Raumfahrt. Die Bildrechte für die Visualisierungen liegen bei den verlinkten Medienhäusern und werden hier nur als Übersicht im Sinne des Zitatrechts zusammengestellt. Bei Fragen oder Anmerkungen wenden Sie sich bitte an xxx@haw-hamburg.de 
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+1. In den Ordner gehen
+2. "In Terminal öffnen"
+3. python -m http.server 8000
+4. im Browser http://localhost:8000/dateiname.html öffnen
+5. zum Beenden im Terminal STRG C drücken
+

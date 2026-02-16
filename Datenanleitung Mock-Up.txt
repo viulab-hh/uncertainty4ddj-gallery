@@ -1,0 +1,6 @@
+Datenanleitung Mock-Up
+
+1. Notion-Export als CSV durchführen
+2. Umwandlung in JSON
+3. Ablage im Ordner als data.json
+4. Das Script greift auf die Datei zu und führt sie aus
