@@ -1,6 +1,11 @@
 Datenanleitung Mock-Up
 
-1. Notion-Export als CSV durchführen
-2. Umwandlung in JSON
-3. Ablage im Ordner als data.json
-4. Das Script greift auf die Datei zu und führt sie aus
+1. Notion-Export als CSV durchführen 
+2. Dadurch erhält man Ordner mit zwei CSV Dateien 
+-> die erste nehmen, die mit _all.csv ist identisch, aber anders sortiert
+3. Ablage der Datei als data.csv im Ordner
+4. Ausführung des py-Scripts csv_to_json_converter.py 
+-> konvertiert und bereinigt erstes Titel-Attribut, was sonst fehlerhaft konvertiert wird
+-> konvertiert die Daten vom Englischen Notion Format ins Deutsche (Check möglich mit verify_dates.py)
+-> erzeugt data.json im Ordner
+4. JavaScript greift auf diese data.json Datei zu und nutzt sie als Grundlage
