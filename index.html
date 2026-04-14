@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Uncertainty Visualizations – Gallery</title>
+<title>Uncertainty Visualizations Gallery</title>
 
 <style>
 :root{
@@ -72,6 +72,47 @@ main{
   gap:10px;
   margin:20px 0;
   align-items:center;
+}
+
+.scenario-filter-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.scenario-help-btn{
+  padding:8px 10px;
+  min-width:34px;
+  height:34px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:#23406e;
+  color:#b7cbe8;
+  font-weight:700;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+
+.scenario-help-btn:hover{
+  background:#2a4a7e;
+}
+
+.filters .scenario-help-btn{
+  background:#23406e;
+  color:#b7cbe8;
+  border:1px solid rgba(255,255,255,0.2);
+  box-shadow:none;
+  filter:none;
+}
+
+.filters .scenario-help-btn:hover{
+  background:#2a4a7e;
+  color:#d6e5f7;
+  box-shadow:none;
+  filter:none;
 }
 
 .filter-group{ position:relative; display:inline-block; }
@@ -222,6 +263,43 @@ details[open] .filter-group summary::after{ transform:rotate(180deg); }
   background:var(--accent2);
 }
 
+.scenario-inline-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.scenario-inline-value{
+  color:var(--muted);
+}
+
+.scenario-inline-help-btn{
+  width:24px;
+  height:24px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:#23406e;
+  color:#b7cbe8;
+  font-weight:700;
+  cursor:pointer;
+  line-height:1;
+}
+
+.scenario-inline-help-btn:hover{
+  background:#2a4a7e;
+}
+
+.explain-list{
+  margin:14px 0 0;
+  padding-left:20px;
+  color:var(--muted);
+}
+
+.explain-list li{
+  margin-bottom:10px;
+  line-height:1.5;
+}
+
 .close{
   position:absolute;
   top:10px;
@@ -274,16 +352,19 @@ footer{
 
 <main>
   <section class="hero">
-    <h1>Uncertainty Visualizations — Gallery</h1>
-    <p>Sammlung journalistischer Unsicherheitsvisualisierungen.</p>
+    <h1>Uncertainty Visualizations Gallery</h1>
+    <p>Sammlung journalistischer Unsicherheitsvisualisierungen</p>
   </section>
 
   <section class="filters">
     <input type="text" id="search" placeholder="Suche..." />
-    <details class="filter-group">
-      <summary class="filter-label">Uncertainty Usage Scenario</summary>
-      <div id="filter-cluster-options" class="filter-options"></div>
-    </details>
+    <div class="scenario-filter-wrap">
+      <details class="filter-group">
+        <summary class="filter-label">Uncertainty Usage Scenario</summary>
+        <div id="filter-cluster-options" class="filter-options"></div>
+      </details>
+      <button id="scenario-help-btn" class="scenario-help-btn" type="button" aria-label="Erklärung zu den Szenarien anzeigen" title="Erklärung zu den Szenarien">?</button>
+    </div>
     <details class="filter-group">
       <summary class="filter-label">Thema</summary>
       <div id="filter-topic-options" class="filter-options"></div>
@@ -327,8 +408,24 @@ footer{
   </div>
 </div>
 
+<div id="scenario-modal" class="modal-backdrop">
+  <div class="modal">
+    <button class="close" onclick="closeScenarioModal()">✕</button>
+    <div class="detail-meta" id="scenario-meta"></div>
+  </div>
+</div>
+
 <script>
 let DATA = [];
+
+const SCENARIO_EXPLANATIONS = {
+  "forecast": "Showing that statements rely on assumptions about an unknown future; uncertainty about future outcomes, based on predictions from models that depend on assumptions and input data.",
+  "definite ranges": "Estimating the expected reality within a range of possible outcomes; uncertainty introduced when different assumptions, parameter settings, or external conditions change results.",
+  "spatial": "Estimating indeterminate locations, areas, etc.; uncertainty related to geographic data, such as incomplete measurements, interpolation errors, or fuzzy boundaries.",
+  "sampling": "Assessing the results of a sample group and possible differences from reality; uncertainty arising from surveys and polls, including sampling error, response bias, or methodological flaws.",
+  "missing data": "Assessing the limitations of a statement because certain information is not available; uncertainty caused by absent, incomplete, or selectively reported data, which impacts analysis and interpretation.",
+  "classification": "Estimating the possible border cases of a chosen group; uncertainty in assigning data into discrete categories, including misclassifications by models or ambiguous cases."
+};
 
 // Monate-zu-Zahlen Mapping für Sortierung
 const MONATSZAHLEN = {
@@ -559,8 +656,11 @@ function openModal(i){
   const sub = (d["Quelle - Tags"]||"") + (d.Datum ? " • " + d.Datum : "");
   const description = d.Beschreibung || "";
   const uncertainty = d["Visualisierung der Unsicherheit"] || "";
+  const scenarioRaw = d.Cluster || d["type of uncertainty"] || "";
+  const scenarioDisplay = formatScenarioDisplay(scenarioRaw) || "Keine Angabe";
   const typeUnc = d["type of uncertainty"] || "";
   const link = d.Link || "#";
+  const encodedScenarios = encodeURIComponent(scenarioRaw);
 
   const modal = document.getElementById("modal");
   const modalImg = document.getElementById("modal-img");
@@ -576,12 +676,126 @@ function openModal(i){
     ${hasVisTitleField && articleTitle && articleTitle.trim() && articleTitle.trim() !== visTitle.trim() ? `<p><strong>Titel des Artikels:</strong> ${articleTitle}</p>` : ''}
     <p><strong>Beschreibung:</strong> ${description}</p>
     <p><strong>Visualisierung der Unsicherheit:</strong> ${uncertainty}</p>
-    <p><strong>Type of Uncertainty:</strong> ${typeUnc}</p>
+    <p><strong>Type of Uncertainty:</strong> ${typeUnc || "Keine Angabe"}</p>
+    <p><strong>Uncertainty Usage Scenario(s):</strong> ${scenarioRaw ? `<span class="scenario-inline-wrap"><span class="scenario-inline-value">${scenarioDisplay}</span><button type="button" class="scenario-inline-help-btn" onclick="openScenarioExplanation(decodeURIComponent('${encodedScenarios}'))" aria-label="Show scenario definitions" title="Show scenario definitions">?</button></span>` : scenarioDisplay}</p>
     <a href="${link}" target="_blank">Original ansehen</a>
   `;
 
   modal.style.display="flex";
   modalImg.onclick = ()=>window.open(`images/${imageName}`,"_blank");
+}
+
+function normalizeScenarioName(value){
+  return (value || "")
+    .toLowerCase()
+    .replace(/^\s*\d+\s*[.):-]?\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function resolveScenarioKey(value){
+  const raw = (value || "").trim();
+  const numMatch = raw.match(/^\s*(\d+)\s*[.)-]?/);
+  if(numMatch){
+    const numKeyMap = {
+      "1": "forecast",
+      "2": "definite ranges",
+      "3": "spatial",
+      "4": "sampling",
+      "5": "missing data",
+      "6": "classification"
+    };
+    if(numKeyMap[numMatch[1]]) return numKeyMap[numMatch[1]];
+  }
+
+  const normalized = normalizeScenarioName(value);
+  if(!normalized) return "";
+  if(normalized.includes("forecast")) return "forecast";
+  if(normalized.includes("definite range")) return "definite ranges";
+  if(normalized.includes("spatial")) return "spatial";
+  if(normalized.includes("sampling")) return "sampling";
+  if(normalized.includes("missing data")) return "missing data";
+  if(normalized.includes("classification")) return "classification";
+  return "";
+}
+
+function cleanScenarioLabel(value){
+  return (value || "").replace(/^\s*\d+\s*[.):-]?\s*/, "").trim();
+}
+
+function formatScenarioDisplay(value){
+  return (value || "")
+    .split(/[,;|]/)
+    .map(s=>cleanScenarioLabel(s))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function findScenarioExplanation(value){
+  const key = resolveScenarioKey(value);
+  return key ? SCENARIO_EXPLANATIONS[key] : "";
+}
+
+function openScenarioExplanation(typeUncertaintyRaw){
+  const scenarioModal = document.getElementById("scenario-modal");
+  const scenarioMeta = document.getElementById("scenario-meta");
+  const scenarios = (typeUncertaintyRaw || "")
+    .split(/[,;|]/)
+    .map(s=>s.trim())
+    .filter(Boolean);
+
+  if(scenarios.length === 0){
+    scenarioMeta.innerHTML = `<p><strong>Note:</strong> No scenario is available for this visualization.</p>`;
+    scenarioModal.style.display = "flex";
+    return;
+  }
+
+  const items = scenarios.map(s=>{
+    const displayLabel = cleanScenarioLabel(s);
+    const explanation = findScenarioExplanation(s);
+    if(explanation){
+      return `<li><strong>${displayLabel}</strong><br>${explanation}</li>`;
+    }
+    return `<li><strong>${displayLabel}</strong><br>Definition available in the scenario glossary.</li>`;
+  }).join("");
+
+  scenarioMeta.innerHTML = `
+    <p><strong>Definitions for the scenarios used in this visualization</strong></p>
+    <p>One visualization can belong to multiple scenarios at the same time.</p>
+    <ul class="explain-list">${items}</ul>
+  `;
+
+  scenarioModal.style.display = "flex";
+}
+
+function openAllScenarioExplanations(){
+  const scenarioModal = document.getElementById("scenario-modal");
+  const scenarioMeta = document.getElementById("scenario-meta");
+  const orderedScenarios = [
+    "Forecast",
+    "Definite Ranges",
+    "Spatial",
+    "Sampling",
+    "Missing Data",
+    "Classification"
+  ];
+
+  const items = orderedScenarios.map(name=>{
+    const explanation = findScenarioExplanation(name);
+    return `<li><strong>${name}</strong><br>${explanation}</li>`;
+  }).join("");
+
+  scenarioMeta.innerHTML = `
+    <p><strong>Definitions of all Uncertainty Usage Scenarios</strong></p>
+    <p>Note: One visualization can belong to multiple scenarios at the same time.</p>
+    <ul class="explain-list">${items}</ul>
+  `;
+
+  scenarioModal.style.display = "flex";
+}
+
+function closeScenarioModal(){
+  document.getElementById("scenario-modal").style.display = "none";
 }
 
 // Schließe Modal
@@ -607,11 +821,19 @@ loadJSON().then(data=>{
 // Event-Listener für Filter
 document.getElementById("search").addEventListener("input", filterAndRenderGallery);
 document.getElementById("reset-filters").addEventListener("click", resetFilters);
+document.getElementById("scenario-help-btn").addEventListener("click", openAllScenarioExplanations);
 // Checkbox-Filter haben ihre eigenen Change-Listener beim Rendern (renderCheckboxes)
 
 // Schließe Modal bei ESC-Taste
 document.addEventListener("keydown", e=>{
-  if(e.key==="Escape") closeModal();
+  if(e.key==="Escape"){
+    closeScenarioModal();
+    closeModal();
+  }
+});
+
+document.getElementById("scenario-modal").addEventListener("click", e=>{
+  if(e.target.id === "scenario-modal") closeScenarioModal();
 });
 
 // Schließe Dropdowns (details) wenn man außerhalb klickt
