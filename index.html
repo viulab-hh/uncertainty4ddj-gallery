@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Uncertainty Visualizations Gallery</title>
+<title>Uncertainty Visualization in Data Journalism</title>
 
 <style>
 :root{
@@ -15,6 +15,7 @@
   --radius:12px;
   --maxw:1200px;
   --base-font:16px;
+  --accent:#34A480;         /* Hauptakzentfarbe Türkis (updated to #34A480) */
 }
 
 *{box-sizing:border-box}
@@ -29,15 +30,28 @@ body{
 }
 
 header{
+  background:linear-gradient(270deg,var(--accent2),#34A480);
+}
+
+.header-inner{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:20px 18px;
   display:flex;
-  justify-content:center;
+  justify-content:flex-start;
   align-items:center;
-  padding:20px 28px;
-  background:linear-gradient(90deg,var(--accent2),var(--accent));
+}
+
+header a{
+  display:inline-flex;
 }
 
 header img{
+  display:block;
+  width:auto;
+  height:60px;
   max-height:60px;
+  filter: invert(1) brightness(2);
 }
 
 main{
@@ -46,12 +60,12 @@ main{
   padding:0 18px;
 }
 
-.hero{
+/* .hero{
   background:linear-gradient(180deg,rgba(0,255,196,0.05),transparent);
   padding:22px;
   border-radius:14px;
   border:1px solid rgba(0,255,196,0.2);
-}
+} */
 
 .hero h1{
   margin:0;
@@ -136,6 +150,12 @@ details[open] .filter-group summary::after{ transform:rotate(180deg); }
   cursor:pointer;
 }
 
+#search{
+  flex: 0 0 140px;
+  width: 140px;
+  min-width: 120px;
+}
+
 .filters button{
   background:var(--accent);
   color:#003ca0;
@@ -148,6 +168,19 @@ details[open] .filter-group summary::after{ transform:rotate(180deg); }
   box-shadow: 0 2px 8px rgba(0,255,196,0.3);
 }
 
+.fade-in-card{
+  opacity:0;
+  transform: translateY(14px);
+  animation: cardFadeIn 260ms ease-out forwards;
+}
+
+@keyframes cardFadeIn{
+  to{
+    opacity:1;
+    transform: translateY(0);
+  }
+}
+
 .layout{
   margin-top:24px;
 }
@@ -156,6 +189,8 @@ details[open] .filter-group summary::after{ transform:rotate(180deg); }
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
   gap:14px;
+  opacity:1;
+  transition:opacity 180ms ease;
 }
 
 .card{
@@ -337,36 +372,48 @@ details[open] .filter-group summary::after{ transform:rotate(180deg); }
 }
 
 footer{
-  text-align:center;
+  text-align:left;
   color:var(--muted);
-  margin:40px 0 80px;
+  margin:40px auto 80px;
+  padding:0 18px;
+  max-width:var(--maxw);
   font-size:14px;
+  line-height:1.6;
+  word-break:break-word;
+}
+
+footer a{
+  color:white;
+  text-decoration:underline;
 }
 </style>
 </head>
 <body>
 
 <header>
-  <img src="images/viulab-logo.svg" alt="ViuLab Logo">
+  <div class="header-inner">
+    <a href="https://viulab.haw-hamburg.de" target="_blank" rel="noopener noreferrer">
+      <img src="images/viulab-logo.svg" alt="ViuLab Logo">
+    </a>
+  </div>
 </header>
 
 <main>
   <section class="hero">
-    <h1>Uncertainty Visualizations Gallery</h1>
-    <p>Sammlung journalistischer Unsicherheitsvisualisierungen</p>
+    <h1>Uncertainty Visualization Gallery</h1>
+    <p>Collection of Uncertainty Visualization Examples from Data Journalism</p>
   </section>
 
   <section class="filters">
-    <input type="text" id="search" placeholder="Suche..." />
     <div class="scenario-filter-wrap">
       <details class="filter-group">
         <summary class="filter-label">Uncertainty Usage Scenario</summary>
         <div id="filter-cluster-options" class="filter-options"></div>
       </details>
-      <button id="scenario-help-btn" class="scenario-help-btn" type="button" aria-label="Erklärung zu den Szenarien anzeigen" title="Erklärung zu den Szenarien">?</button>
+      <button id="scenario-help-btn" class="scenario-help-btn" type="button" aria-label="Show scenario definitions" title="Show scenario definitions">?</button>
     </div>
     <details class="filter-group">
-      <summary class="filter-label">Thema</summary>
+      <summary class="filter-label">Topic</summary>
       <div id="filter-topic-options" class="filter-options"></div>
     </details>
     <details class="filter-group">
@@ -378,10 +425,11 @@ footer{
       <div id="filter-chart-options" class="filter-options"></div>
     </details>
     <details class="filter-group">
-      <summary class="filter-label">Datum</summary>
+      <summary class="filter-label">Date</summary>
       <div id="filter-date-options" class="filter-options"></div>
     </details>
-    <button id="reset-filters">Filter zurücksetzen</button>
+    <input type="text" id="search" placeholder="Search..." />
+    <button id="reset-filters">Reset</button>
   </section>
 
   <section class="layout">
@@ -427,35 +475,44 @@ const SCENARIO_EXPLANATIONS = {
   "classification": "Estimating the possible border cases of a chosen group; uncertainty in assigning data into discrete categories, including misclassifications by models or ambiguous cases."
 };
 
-// Monate-zu-Zahlen Mapping für Sortierung
-const MONATSZAHLEN = {
+// German month names to numeric mapping for sorting
+const MONTH_NUMBER = {
   "Januar":"01","Februar":"02","März":"03","April":"04",
   "Mai":"05","Juni":"06","Juli":"07","August":"08",
-  "September":"09","Oktober":"10","November":"11","Dezember":"12"
+  "September":"09","Oktober":"10","November":"11","Dezember":"12",
+  "Jan":"01","Feb":"02","Mar":"03","Apr":"04",
+  "May":"05","Jun":"06","Jul":"07","Aug":"08",
+  "Sep":"09","Oct":"10","Nov":"11","Dec":"12"
 };
 
-// Formatiere Datum zu lesbarem String (Monatname Jahr)
+const MONTH_SHORT = {
+  "Januar":"Jan","Februar":"Feb","März":"Mar","April":"Apr",
+  "Mai":"May","Juni":"Jun","Juli":"Jul","August":"Aug",
+  "September":"Sep","Oktober":"Oct","November":"Nov","Dezember":"Dec"
+};
+
+// Format date to readable string like "Jan 2025"
 function formatDateReadable(datum) {
   if(!datum) return "";
-  // Format: "3. Juni 2024" -> extrahiere "Juni 2024"
   const parts = datum.split(" ");
   if(parts.length < 2) return "";
   
-  const month = parts[1]; // z.B. "Juni"
-  const year = parts[2];  // z.B. "2024"
+  const month = parts[1];
+  const year = parts[2];
+  const shortMonth = MONTH_SHORT[month] || month;
   
-  return month && year ? month + " " + year : "";
+  return shortMonth && year ? shortMonth + " " + year : "";
 }
 
-// Konvertiere Datum zu sortierbarer Zeichenkette (YYYYMM)
+// Convert readble date string to sortable key (YYYYMM)
 function getDateSortKey(dateString) {
   if(!dateString) return "";
   const parts = dateString.split(" ");
   if(parts.length < 2) return "";
   
-  const month = parts[0]; // z.B. "Juni"
-  const year = parts[1];  // z.B. "2024"
-  const monthNum = MONATSZAHLEN[month];
+  const month = parts[0];
+  const year = parts[1];
+  const monthNum = MONTH_NUMBER[month];
   
   return monthNum && year ? year + monthNum : "";
 }
@@ -485,6 +542,7 @@ async function loadJSON() {
 // Rendere Galerie
 function renderGallery(list = DATA){
   const g = document.getElementById("gallery");
+  g.style.opacity = '0';
   g.innerHTML = "";
   list.forEach((d,i)=>{
     const imageName = d.Bild || "placeholder.png";
@@ -507,7 +565,13 @@ function renderGallery(list = DATA){
     `;
 
     card.addEventListener("click",()=>openModal(d));
+    card.classList.add('fade-in-card');
+    card.style.animationDelay = `${i * 30}ms`;
     g.appendChild(card);
+  });
+
+  requestAnimationFrame(()=>{
+    g.style.opacity = '1';
   });
 }
 
@@ -575,6 +639,21 @@ function populateFilters(){
 
   // Hilfsfunktion zum Hinzufügen von Optionen
   // Rendere Checkbox-Gruppen in einem Container (containerId erwartet z.B. 'filter-cluster-options')
+  const TOPIC_TRANSLATIONS = {
+    "Gesundheit & Leben": "Health & Life",
+    "Katastrophen & Kriege/Konflikte": "Disasters & Wars/Conflicts",
+    "Klima & Wetter": "Climate & Weather",
+    "Migration": "Migration",
+    "Natur & Umwelt": "Nature & Environment",
+    "Technologie & Energie": "Technology & Energy",
+    "US-Politik": "US Politics",
+    "Unterhaltung": "Entertainment",
+    "Wahlen & Parteien": "Elections & Parties",
+    "Wirtschaft & Finanzen": "Economy & Finance"
+  };
+
+  const translateTopicLabel = topic => TOPIC_TRANSLATIONS[topic] || topic;
+
   const updateSummaryFor = (containerId)=>{
     const container = document.getElementById(containerId);
     if(!container) return;
@@ -583,12 +662,15 @@ function populateFilters(){
     const summary = details.querySelector('summary');
     const defaultLabel = summary.dataset.default || summary.textContent.trim();
     summary.dataset.default = defaultLabel;
-    const checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(i=>i.value);
+    let checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(i=>i.value);
+    if(containerId === 'filter-topic-options'){
+      checked = checked.map(translateTopicLabel);
+    }
     if(checked.length===0){
       summary.firstChild && summary.firstChild.remove();
       summary.textContent = defaultLabel;
     } else {
-      summary.textContent = defaultLabel + ': ' + checked.join(', ');
+      summary.textContent = checked.join(', ');
     }
   };
 
@@ -601,11 +683,14 @@ function populateFilters(){
     if(sortFn) sortedItems.sort(sortFn);
     else sortedItems.sort();
 
-    sortedItems.forEach(i=>{
+    sortedItems.forEach((item, index)=>{
+      const displayLabel = containerId === 'filter-topic-options' ? translateTopicLabel(item) : item;
+
       // versteckte Checkbox für die Filter-Logik
       const hiddenInput = document.createElement('input');
       hiddenInput.type = 'checkbox';
-      hiddenInput.value = i;
+      hiddenInput.value = item;
+      hiddenInput.id = `${containerId}-option-${index}`;
       hiddenInput.style.display = 'none';
       container.appendChild(hiddenInput);
 
@@ -613,14 +698,26 @@ function populateFilters(){
       const label = document.createElement('label');
       label.className = 'option-label';
       label.style.cssText = 'cursor: pointer; display: block; padding: 6px 0; user-select: none;';
-      label.textContent = i;
-      label.dataset.value = i;
+      label.textContent = displayLabel;
+      label.htmlFor = hiddenInput.id;
       
       label.addEventListener('click', e=>{
         e.stopPropagation();
-        hiddenInput.checked = !hiddenInput.checked;
-        if(hiddenInput.checked) label.classList.add('selected'); 
-        else label.classList.remove('selected');
+        const wasChecked = hiddenInput.checked;
+
+        // Nur eine Auswahl pro Dropdown erlauben
+        container.querySelectorAll('input[type="checkbox"]').forEach(otherInput => {
+          otherInput.checked = false;
+        });
+        container.querySelectorAll('label').forEach(otherLabel => {
+          otherLabel.classList.remove('selected');
+        });
+
+        if(!wasChecked){
+          hiddenInput.checked = true;
+          label.classList.add('selected');
+        }
+
         updateSummaryFor(containerId);
         filterAndRenderGallery();
       });
@@ -808,6 +905,15 @@ function resetFilters(){
   document.getElementById("search").value="";
   // Uncheck all filter checkboxes
   document.querySelectorAll('.filter-options input[type="checkbox"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('.filter-options').forEach(container=>{
+    const details = container.closest('details');
+    if(!details) return;
+    const summary = details.querySelector('summary');
+    if(summary && summary.dataset.default){
+      summary.textContent = summary.dataset.default;
+    }
+    container.querySelectorAll('label').forEach(label=>label.classList.remove('selected'));
+  });
   filterAndRenderGallery();
 }
 
@@ -847,7 +953,9 @@ document.addEventListener("click", e=>{
 </script>
 
 <footer>
-  Uncertainty4ddj ist ein Forschungsprojekt an der HAW Hamburg, gefördert vom Bundesministerium für Forschung, Technologie und Raumfahrt. Die Bildrechte für die Visualisierungen liegen bei den verlinkten Medienhäusern und werden hier nur als Übersicht im Sinne des Zitatrechts zusammengestellt. Bei Fragen oder Anmerkungen wenden Sie sich bitte an xxx@haw-hamburg.de 
+  <a href="https://viulab.haw-hamburg.de/projects/uncertainty4ddj" target="_blank" rel="noopener noreferrer">Uncertainty4ddj</a> is a research project at viu:lab,  HAW Hamburg, funded by the Federal Ministry of Research, Technology and Space.<br>
+  Image rights for the visualizations belong to the linked media houses and are presented here only as an overview in accordance with quotation law. <br>
+  If you have questions, comments, or corrections, <a href="https://viulab.haw-hamburg.de/contact" target="_blank" rel="noopener noreferrer">contact us</a>.
 </footer>
 
 </body>
