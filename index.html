@@ -770,12 +770,12 @@ function openModal(i){
   const hasVisTitleField = !!(d["Visualisierungstitel (falls nicht identisch)"] && d["Visualisierungstitel (falls nicht identisch)"].trim());
   modalMeta.innerHTML = `
     <p><strong>${visTitle}</strong> • ${sub}</p>
-    ${hasVisTitleField && articleTitle && articleTitle.trim() && articleTitle.trim() !== visTitle.trim() ? `<p><strong>Titel des Artikels:</strong> ${articleTitle}</p>` : ''}
-    <p><strong>Beschreibung:</strong> ${description}</p>
-    <p><strong>Visualisierung der Unsicherheit:</strong> ${uncertainty}</p>
-    <p><strong>Type of Uncertainty:</strong> ${typeUnc || "Keine Angabe"}</p>
-    <p><strong>Uncertainty Usage Scenario(s):</strong> ${scenarioRaw ? `<span class="scenario-inline-wrap"><span class="scenario-inline-value">${scenarioDisplay}</span><button type="button" class="scenario-inline-help-btn" onclick="openScenarioExplanation(decodeURIComponent('${encodedScenarios}'))" aria-label="Show scenario definitions" title="Show scenario definitions">?</button></span>` : scenarioDisplay}</p>
-    <a href="${link}" target="_blank">Original ansehen</a>
+    ${hasVisTitleField && articleTitle && articleTitle.trim() && articleTitle.trim() !== visTitle.trim() ? `<p><strong>Article title:</strong> ${articleTitle}</p>` : ''}
+    <p><strong>Description:</strong> ${description}</p>
+    <p><strong>Uncertainty visualization:</strong> ${uncertainty}</p>
+    <p><strong>Type of uncertainty:</strong> ${typeUnc || "No information"}</p>
+    <p><strong>Uncertainty usage scenario(s):</strong> ${scenarioRaw ? `<span class="scenario-inline-wrap"><span class="scenario-inline-value">${scenarioDisplay}</span><button type="button" class="scenario-inline-help-btn" onclick="openScenarioExplanation(decodeURIComponent('${encodedScenarios}'))" aria-label="Show scenario definitions" title="Show scenario definitions">?</button></span>` : scenarioDisplay}</p>
+    <a href="${link}" target="_blank">View original</a>
   `;
 
   modal.style.display="flex";
